@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>2026 新春快乐 🧧</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        html, body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 40%, #0d1b2a 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            font-family: 'Ma Shan Zheng', cursive;
+            touch-action: manipulation;
+        }
+        
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        
+        /* 祝福语区域 */
+        .blessings {
+            position: fixed;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            pointer-events: none;
+            width: 90%;
+            max-width: 600px;
+        }
+        
+        .blessings.show {
+            opacity: 1;
+        }
+        
+        .main-greeting {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(18px, 5vw, 40px);
+            color: #ffd700;
+            text-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.8),
+                0 0 40px rgba(255, 100, 0, 0.6),
+                0 0 60px rgba(255, 50, 0, 0.4),
+                3px 3px 0 #ff4444;
+            letter-spacing: 0.3em;
+            margin-bottom: 15px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 100, 0, 0.6), 3px 3px 0 #ff4444; }
+            to { text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 100, 0, 0.8), 0 0 80px rgba(255, 50, 0, 0.5), 3px 3px 0 #ff4444; }
+        }
+        
+        .sub-greeting {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(18px, 5vw, 40px);
+            color: #ffd700;
+            text-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.8),
+                0 0 40px rgba(255, 100, 0, 0.6),
+                0 0 60px rgba(255, 50, 0, 0.4),
+                3px 3px 0 #ff4444;
+            letter-spacing: 0.15em;
+            line-height: 1.8;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1s ease-out forwards, glow 2s ease-in-out infinite alternate;
+            animation-delay: 0.5s;
+            white-space: nowrap;
+        }
+        
+        .sub-greeting span {
+            display: block;
+            margin: 12px 0;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .blessing-line-1 { animation-delay: 0.8s; }
+        .blessing-line-2 { 
+            animation-delay: 1.4s;
+            font-size: clamp(36px, 10vw, 72px) !important;
+            margin-top: 20px !important;
+        }
+        
+        /* 提示文字 */
+        .click-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 215, 0, 0.6);
+            font-size: clamp(14px, 3.5vw, 18px);
+            z-index: 100;
+            animation: pulse 2s ease-in-out infinite;
+            font-family: 'Ma Shan Zheng', cursive;
+            letter-spacing: 0.15em;
+            white-space: nowrap;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        /* 音效按钮 */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            color: #ffd700;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .sound-toggle:hover, .sound-toggle:active {
+            background: rgba(255, 215, 0, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+        
+        /* 灯笼 */
+        .lanterns {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        
+        .lanterns.show {
+            opacity: 1;
+        }
+        
+        .lantern {
+            position: absolute;
+            animation: sway 4s ease-in-out infinite;
+        }
+        
+        .lantern-1 { top: 3%; left: 5%; animation-delay: 0s; transform: scale(0.7); }
+        .lantern-2 { top: 5%; right: 5%; animation-delay: 1s; transform: scale(0.8); }
+        .lantern-3 { top: 2%; left: 25%; animation-delay: 2s; transform: scale(0.6); }
+        .lantern-4 { top: 4%; right: 25%; animation-delay: 0.5s; transform: scale(0.65); }
+        
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+        
+        .lantern svg {
+            width: clamp(40px, 10vw, 70px);
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(255, 100, 0, 0.6));
+        }
+    </style>
+</head>
+<body>
+    <!-- 音效开关 -->
+    <button class="sound-toggle" id="soundToggle" title="音效开关">
+        🔊
+    </button>
+    
+    <canvas id="canvas"></canvas>
+    
+    <!-- 灯笼 -->
+    <div class="lanterns" id="lanterns">
+        <div class="lantern lantern-1">
+            <svg viewBox="0 0 60 100">
+                <defs>
+                    <linearGradient id="lanternGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ff3300"/>
+                        <stop offset="50%" style="stop-color:#cc0000"/>
+                        <stop offset="100%" style="stop-color:#990000"/>
+                    </linearGradient>
+                    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffd700"/>
+                        <stop offset="100%" style="stop-color:#b8860b"/>
+                    </linearGradient>
+                </defs>
+                <line x1="30" y1="0" x2="30" y2="15" stroke="#8b4513" stroke-width="2"/>
+                <rect x="22" y="15" width="16" height="8" rx="2" fill="url(#goldGrad)"/>
+                <ellipse cx="30" cy="50" rx="22" ry="28" fill="url(#lanternGrad)"/>
+                <text x="30" y="55" text-anchor="middle" fill="#ffd700" font-size="18" font-family="Ma Shan Zheng">新</text>
+                <rect x="20" y="75" width="20" height="8" rx="2" fill="url(#goldGrad)"/>
+                <line x1="30" y1="83" x2="30" y2="100" stroke="#ffd700" stroke-width="3"/>
+            </svg>
+        </div>
+        <div class="lantern lantern-2">
+            <svg viewBox="0 0 60 100">
+                <line x1="30" y1="0" x2="30" y2="15" stroke="#8b4513" stroke-width="2"/>
+                <rect x="22" y="15" width="16" height="8" rx="2" fill="url(#goldGrad)"/>
+                <ellipse cx="30" cy="50" rx="22" ry="28" fill="url(#lanternGrad)"/>
+                <text x="30" y="55" text-anchor="middle" fill="#ffd700" font-size="18" font-family="Ma Shan Zheng">乐</text>
+                <rect x="20" y="75" width="20" height="8" rx="2" fill="url(#goldGrad)"/>
+                <line x1="30" y1="83" x2="30" y2="100" stroke="#ffd700" stroke-width="3"/>
+            </svg>
+        </div>
+        <div class="lantern lantern-3">
+            <svg viewBox="0 0 60 100">
+                <line x1="30" y1="0" x2="30" y2="15" stroke="#8b4513" stroke-width="2"/>
+                <rect x="22" y="15" width="16" height="8" rx="2" fill="url(#goldGrad)"/>
+                <ellipse cx="30" cy="50" rx="22" ry="28" fill="url(#lanternGrad)"/>
+                <text x="30" y="55" text-anchor="middle" fill="#ffd700" font-size="18" font-family="Ma Shan Zheng">春</text>
+                <rect x="20" y="75" width="20" height="8" rx="2" fill="url(#goldGrad)"/>
+                <line x1="30" y1="83" x2="30" y2="100" stroke="#ffd700" stroke-width="3"/>
+            </svg>
+        </div>
+        <div class="lantern lantern-4">
+            <svg viewBox="0 0 60 100">
+                <line x1="30" y1="0" x2="30" y2="15" stroke="#8b4513" stroke-width="2"/>
+                <rect x="22" y="15" width="16" height="8" rx="2" fill="url(#goldGrad)"/>
+                <ellipse cx="30" cy="50" rx="22" ry="28" fill="url(#lanternGrad)"/>
+                <text x="30" y="55" text-anchor="middle" fill="#ffd700" font-size="18" font-family="Ma Shan Zheng">快</text>
+                <rect x="20" y="75" width="20" height="8" rx="2" fill="url(#goldGrad)"/>
+                <line x1="30" y1="83" x2="30" y2="100" stroke="#ffd700" stroke-width="3"/>
+            </svg>
+        </div>
+    </div>
+    
+    <!-- 祝福语 -->
+    <div class="blessings" id="blessings">
+        <div class="main-greeting">愿你过尽千帆</div>
+        <div class="sub-greeting">
+            <span class="blessing-line-1">仍有星辰可追，山海可赴</span>
+            <span class="blessing-line-2">2026，我们更高处见</span>
+        </div>
+    </div>
+    
+    <div class="click-hint" id="clickHint">✨ 点击屏幕放烟花 ✨</div>
+
+    <script>
+        // ========== 音效系统 ==========
+        class SoundSystem {
+            constructor() {
+                this.enabled = true;
+                this.audioContext = null;
+                this.initialized = false;
+            }
+            
+            init() {
+                if (this.initialized) return;
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.initialized = true;
+                } catch (e) {
+                    console.log('Web Audio API not supported');
+                    this.enabled = false;
+                }
+            }
+            
+            // 烟花上升音效 - 嘶嘶声
+            playLaunch() {
+                if (!this.enabled || !this.audioContext) return;
+                
+                const ctx = this.audioContext;
+                const duration = 0.8;
+                const now = ctx.currentTime;
+                
+                // 噪音生成器
+                const bufferSize = ctx.sampleRate * duration;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-3 * i / bufferSize);
+                }
+                
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                
+                // 滤波器 - 高频嘶嘶声
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(2000, now);
+                filter.frequency.exponentialRampToValueAtTime(8000, now + duration);
+                
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                
+                noise.start(now);
+                noise.stop(now + duration);
+            }
+            
+            // 烟花爆炸音效
+            playExplosion(isLarge = false) {
+                if (!this.enabled || !this.audioContext) return;
+                
+                const ctx = this.audioContext;
+                const duration = isLarge ? 1.5 : 1.0;
+                const now = ctx.currentTime;
+                
+                // 爆炸噪音
+                const bufferSize = ctx.sampleRate * duration;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < bufferSize; i++) {
+                    const t = i / bufferSize;
+                    // 快速衰减的噪音
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-5 * t) * (1 - t * 0.5);
+                }
+                
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                
+                // 低通滤波 - 爆炸声
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(isLarge ? 3000 : 2000, now);
+                filter.frequency.exponentialRampToValueAtTime(200, now + duration);
+                
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(isLarge ? 0.4 : 0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+                
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                
+                noise.start(now);
+                noise.stop(now + duration);
+                
+                // 添加回响
+                this.playEcho(isLarge);
+            }
+            
+            // 回响效果
+            playEcho(isLarge) {
+                const ctx = this.audioContext;
+                const now = ctx.currentTime;
+                const delay = isLarge ? 0.15 : 0.1;
+                
+                setTimeout(() => {
+                    const duration = 0.5;
+                    const bufferSize = ctx.sampleRate * duration;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = (Math.random() * 2 - 1) * Math.exp(-8 * i / bufferSize);
+                    }
+                    
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 800;
+                    
+                    const gain = ctx.createGain();
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+                    
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    noise.start();
+                    noise.stop(ctx.currentTime + duration);
+                }, delay * 1000);
+            }
+            
+            // 数字烟花特殊音效
+            playNumberExplosion() {
+                if (!this.enabled || !this.audioContext) return;
+                
+                const ctx = this.audioContext;
+                const now = ctx.currentTime;
+                
+                // 和弦音效
+                const frequencies = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+                
+                frequencies.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    
+                    const gain = ctx.createGain();
+                    gain.gain.setValueAtTime(0, now + i * 0.05);
+                    gain.gain.linearRampToValueAtTime(0.1, now + i * 0.05 + 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 2);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.start(now + i * 0.05);
+                    osc.stop(now + 2);
+                });
+            }
+            
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+        
+        const soundSystem = new SoundSystem();
+        
+        // ========== Canvas 设置 ==========
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100);
+        });
+        
+        let width, height;
+        function updateSize() {
+            width = canvas.width;
+            height = canvas.height;
+        }
+        updateSize();
+        
+        // ========== 颜色配置 ==========
+        const numberColors = [
+            ['#ff69b4', '#ff1493', '#ffb6c1', '#ff85c1', '#ffc0cb'],
+            ['#ffd700', '#ffec8b', '#fff8dc', '#ffa500', '#ffcc00'],
+            ['#00bfff', '#87ceeb', '#4169e1', '#6495ed', '#00ffff'],
+            ['#9932cc', '#da70d6', '#ee82ee', '#ba55d3', '#8b008b']
+        ];
+        
+        const fireworkColors = [
+            ['#ff0044', '#ff3366', '#ff6688', '#ff99aa', '#ffccdd'],
+            ['#ff6600', '#ff9933', '#ffbb66', '#ffdd99', '#ffeecc'],
+            ['#ffdd00', '#ffee33', '#ffff66', '#ffff99', '#ffffcc'],
+            ['#00ff66', '#33ff88', '#66ffaa', '#99ffcc', '#ccffee'],
+            ['#0099ff', '#33bbff', '#66ccff', '#99ddff', '#cceeff'],
+            ['#9933ff', '#bb66ff', '#cc88ff', '#ddaaff', '#eeccff'],
+            ['#ff33cc', '#ff66dd', '#ff88ee', '#ffaaff', '#ffccff'],
+            ['#ffffff', '#eeeeff', '#ddddff', '#ccccff', '#bbbbff'],
+        ];
+        
+        // ========== 粒子类 ==========
+        class Particle {
+            constructor(x, y, color, velocity, size, decay, gravity = 0.06) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.velocity = velocity;
+                this.size = size;
+                this.alpha = 1;
+                this.decay = decay;
+                this.gravity = gravity;
+                this.trail = [];
+                this.trailLength = 8;
+            }
+            
+            update() {
+                this.trail.push({ x: this.x, y: this.y, alpha: this.alpha, size: this.size });
+                if (this.trail.length > this.trailLength) this.trail.shift();
+                
+                this.velocity.x *= 0.985;
+                this.velocity.y *= 0.985;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= this.decay;
+                this.size *= 0.997;
+            }
+            
+            draw() {
+                this.trail.forEach((point, index) => {
+                    const ratio = (index + 1) / this.trail.length;
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, point.size * ratio * 0.6, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.globalAlpha = point.alpha * ratio * 0.4;
+                    ctx.fill();
+                });
+                
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 4);
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(0.4, this.color + '88');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.globalAlpha = this.alpha * 0.6;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+            }
+        }
+        
+        // ========== 烟花类 ==========
+        class Firework {
+            constructor(x, targetY, colorSet, isLarge = false) {
+                this.x = x;
+                this.y = height + 20;
+                this.targetY = targetY;
+                this.colorSet = colorSet;
+                this.velocity = { x: (Math.random() - 0.5) * 2, y: -14 - Math.random() * 6 };
+                this.trail = [];
+                this.trailLength = 20;
+                this.exploded = false;
+                this.particles = [];
+                this.isLarge = isLarge;
+                this.launchSoundPlayed = false;
+            }
+            
+            update() {
+                if (!this.exploded) {
+                    if (!this.launchSoundPlayed) {
+                        soundSystem.playLaunch();
+                        this.launchSoundPlayed = true;
+                    }
+                    
+                    this.trail.push({ x: this.x, y: this.y });
+                    if (this.trail.length > this.trailLength) this.trail.shift();
+                    
+                    this.velocity.y += 0.12;
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+                    
+                    if (this.velocity.y >= 0 || this.y <= this.targetY) {
+                        this.explode();
+                    }
+                }
+                
+                this.particles = this.particles.filter(p => p.alpha > 0.01);
+                this.particles.forEach(p => p.update());
+            }
+            
+            explode() {
+                this.exploded = true;
+                soundSystem.playExplosion(this.isLarge);
+                
+                const baseCount = this.isLarge ? 200 : 120;
+                const particleCount = baseCount + Math.random() * 80;
+                const layers = this.isLarge ? 4 : 3;
+                
+                for (let layer = 0; layer < layers; layer++) {
+                    const layerParticles = particleCount / layers;
+                    const layerSpeed = (4 + layer * 2.5) * (this.isLarge ? 1.3 : 1);
+                    
+                    for (let i = 0; i < layerParticles; i++) {
+                        const angle = (Math.PI * 2 / layerParticles) * i + Math.random() * 0.3;
+                        const speed = layerSpeed + Math.random() * 3;
+                        const color = this.colorSet[Math.floor(Math.random() * this.colorSet.length)];
+                        const size = 2 + Math.random() * 2.5;
+                        
+                        this.particles.push(new Particle(
+                            this.x, this.y, color,
+                            { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed },
+                            size, 0.008 + Math.random() * 0.006
+                        ));
+                    }
+                }
+                
+                for (let i = 0; i < 40; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 4;
+                    this.particles.push(new Particle(
+                        this.x, this.y, '#ffffff',
+                        { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed },
+                        3, 0.015
+                    ));
+                }
+            }
+            
+            draw() {
+                if (!this.exploded) {
+                    for (let i = 0; i < this.trail.length; i++) {
+                        const point = this.trail[i];
+                        const ratio = i / this.trail.length;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, 2 + ratio * 2, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, ${180 + ratio * 75}, ${100 + ratio * 100}, ${ratio * 0.8})`;
+                        ctx.fill();
+                    }
+                    
+                    const headGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, 20);
+                    headGradient.addColorStop(0, '#ffffff');
+                    headGradient.addColorStop(0.3, '#ffffaa');
+                    headGradient.addColorStop(0.6, '#ffaa00');
+                    headGradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = headGradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                this.particles.forEach(p => p.draw());
+            }
+            
+            isDone() {
+                return this.exploded && this.particles.length === 0;
+            }
+        }
+        
+        // ========== 数字烟花类 ==========
+        class NumberFirework {
+            constructor(char, centerX, centerY, colorSet, delay = 0) {
+                this.char = char;
+                this.centerX = centerX;
+                this.centerY = centerY;
+                this.colorSet = colorSet;
+                this.particles = [];
+                this.sparkles = [];
+                this.delay = delay;
+                this.phase = 'waiting';
+                this.explosionTime = 0;
+                this.formingProgress = 0;
+                this.fadeProgress = 0;
+                this.targetPositions = [];
+                this.soundPlayed = false;
+                this.getTargetPositions();
+            }
+            
+            getTargetPositions() {
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                const fontSize = Math.min(width * 0.18, 180);
+                tempCanvas.width = fontSize * 1.2;
+                tempCanvas.height = fontSize * 1.4;
+                
+                tempCtx.font = `bold ${fontSize}px Arial`;
+                tempCtx.fillStyle = 'white';
+                tempCtx.textAlign = 'center';
+                tempCtx.textBaseline = 'middle';
+                tempCtx.fillText(this.char, tempCanvas.width / 2, tempCanvas.height / 2);
+                
+                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                const data = imageData.data;
+                const step = Math.max(3, Math.floor(fontSize / 40));
+                
+                for (let y = 0; y < tempCanvas.height; y += step) {
+                    for (let x = 0; x < tempCanvas.width; x += step) {
+                        const index = (y * tempCanvas.width + x) * 4;
+                        if (data[index + 3] > 128) {
+                            this.targetPositions.push({
+                                x: this.centerX + (x - tempCanvas.width / 2),
+                                y: this.centerY + (y - tempCanvas.height / 2)
+                            });
+                        }
+                    }
+                }
+            }
+            
+            start() {
+                if (this.phase !== 'waiting') return;
+                this.phase = 'exploding';
+                
+                if (!this.soundPlayed) {
+                    soundSystem.playNumberExplosion();
+                    this.soundPlayed = true;
+                }
+                
+                this.targetPositions.forEach((target, i) => {
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 200 + Math.random() * 300;
+                    const startX = this.centerX + Math.cos(angle) * dist;
+                    const startY = this.centerY + Math.sin(angle) * dist;
+                    
+                    this.particles.push({
+                        x: startX, y: startY,
+                        targetX: target.x, targetY: target.y,
+                        color: this.colorSet[Math.floor(Math.random() * this.colorSet.length)],
+                        size: 2.5 + Math.random() * 2,
+                        alpha: 1,
+                        delay: Math.random() * 20,
+                        trail: []
+                    });
+                });
+                
+                for (let i = 0; i < 60; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 3 + Math.random() * 8;
+                    this.sparkles.push({
+                        x: this.centerX, y: this.centerY,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: this.colorSet[Math.floor(Math.random() * this.colorSet.length)],
+                        alpha: 1,
+                        size: 2 + Math.random() * 3
+                    });
+                }
+            }
+            
+            update() {
+                if (this.phase === 'waiting') {
+                    this.delay--;
+                    if (this.delay <= 0) this.start();
+                    return;
+                }
+                
+                this.sparkles = this.sparkles.filter(s => s.alpha > 0.01);
+                this.sparkles.forEach(s => {
+                    s.x += s.vx;
+                    s.y += s.vy;
+                    s.vx *= 0.96;
+                    s.vy *= 0.96;
+                    s.vy += 0.05;
+                    s.alpha -= 0.015;
+                    s.size *= 0.98;
+                });
+                
+                if (this.phase === 'exploding') {
+                    this.explosionTime++;
+                    if (this.explosionTime > 30) this.phase = 'forming';
+                }
+                
+                if (this.phase === 'forming') {
+                    this.formingProgress += 0.015;
+                    
+                    this.particles.forEach(p => {
+                        if (p.delay > 0) { p.delay--; return; }
+                        p.trail.push({ x: p.x, y: p.y });
+                        if (p.trail.length > 6) p.trail.shift();
+                        p.x += (p.targetX - p.x) * 0.08;
+                        p.y += (p.targetY - p.y) * 0.08;
+                    });
+                    
+                    const settled = this.particles.every(p => {
+                        const dx = p.x - p.targetX;
+                        const dy = p.y - p.targetY;
+                        return Math.sqrt(dx * dx + dy * dy) < 5;
+                    });
+                    
+                    if (settled || this.formingProgress > 1.5) {
+                        this.phase = 'formed';
+                        this.formHoldTime = 0;
+                    }
+                }
+                
+                if (this.phase === 'formed') {
+                    this.formHoldTime++;
+                    if (this.formHoldTime > 360) this.phase = 'fading';
+                }
+                
+                if (this.phase === 'fading') {
+                    this.fadeProgress += 0.005;
+                    this.particles.forEach(p => {
+                        p.alpha = Math.max(0, 1 - this.fadeProgress);
+                        p.x += (Math.random() - 0.5) * 0.3;
+                        p.y += (Math.random() - 0.5) * 0.2 - 0.15;
+                        p.size *= 0.999;
+                    });
+                    if (this.fadeProgress >= 1) this.phase = 'done';
+                }
+            }
+            
+            draw() {
+                this.sparkles.forEach(s => {
+                    ctx.globalAlpha = s.alpha;
+                    const gradient = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size * 4);
+                    gradient.addColorStop(0, s.color);
+                    gradient.addColorStop(0.5, s.color + '66');
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size * 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fill();
+                });
+                
+                this.particles.forEach(p => {
+                    if (p.delay > 0) return;
+                    
+                    p.trail.forEach((point, i) => {
+                        const ratio = i / p.trail.length;
+                        ctx.globalAlpha = p.alpha * ratio * 0.3;
+                        ctx.beginPath();
+                        ctx.arc(point.x, point.y, p.size * ratio * 0.5, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+                    });
+                    
+                    ctx.globalAlpha = p.alpha;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    
+                    const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
+                    gradient.addColorStop(0, p.color);
+                    gradient.addColorStop(0.5, p.color + '44');
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.globalAlpha = p.alpha * 0.5;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                ctx.globalAlpha = 1;
+            }
+            
+            isDone() {
+                return this.phase === 'done';
+            }
+        }
+        
+        // ========== 主逻辑 ==========
+        let fireworks = [];
+        let numberFireworks = [];
+        let stars = [];
+        let showYearTriggered = false;
+        let fireworkCount = 0;
+        let started = false;
+        let autoFireworkInterval = null;
+        
+        // 创建星星
+        function createStars() {
+            stars = [];
+            for (let i = 0; i < 150; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height * 0.7,
+                    size: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random(),
+                    twinkleSpeed: 0.01 + Math.random() * 0.02
+                });
+            }
+        }
+        createStars();
+        
+        function launchRandomFirework() {
+            updateSize();
+            const x = width * 0.1 + Math.random() * width * 0.8;
+            const targetY = height * 0.1 + Math.random() * height * 0.35;
+            const colorSet = fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
+            const isLarge = Math.random() > 0.6;
+            
+            fireworks.push(new Firework(x, targetY, colorSet, isLarge));
+            fireworkCount++;
+            
+            if (fireworkCount >= 10 && !showYearTriggered) {
+                showYearTriggered = true;
+                setTimeout(launchNumberFireworks, 800);
+            }
+        }
+        
+        function launchNumberFireworks() {
+            updateSize();
+            const spacing = Math.min(width * 0.22, 200);
+            const startX = width / 2 - spacing * 1.5;
+            const centerY = height * 0.38;
+            
+            const chars = ['2', '0', '2', '6'];
+            chars.forEach((char, i) => {
+                numberFireworks.push(new NumberFirework(
+                    char, startX + i * spacing, centerY,
+                    numberColors[i], i * 25
+                ));
+            });
+            
+            setTimeout(() => {
+                document.getElementById('blessings').classList.add('show');
+                document.getElementById('lanterns').classList.add('show');
+            }, 2500);
+        }
+        
+        // 触摸/点击事件
+        function handleInteraction(e) {
+            e.preventDefault();
+            
+            // 首次交互时初始化音效
+            if (!soundSystem.initialized) {
+                soundSystem.init();
+            }
+            
+            let x, y;
+            if (e.touches) {
+                x = e.touches[0].clientX;
+                y = e.touches[0].clientY;
+            } else {
+                x = e.clientX;
+                y = e.clientY;
+            }
+            
+            updateSize();
+            const targetY = height * 0.1 + Math.random() * height * 0.3;
+            const colorSet = fireworkColors[Math.floor(Math.random() * fireworkColors.length)];
+            
+            fireworks.push(new Firework(x, targetY, colorSet, Math.random() > 0.5));
+            fireworkCount++;
+            
+            if (fireworkCount >= 6 && !showYearTriggered) {
+                showYearTriggered = true;
+                setTimeout(launchNumberFireworks, 500);
+            }
+        }
+        
+        canvas.addEventListener('click', handleInteraction);
+        canvas.addEventListener('touchstart', handleInteraction, { passive: false });
+        
+        // 开始按钮 - 移除，改为自动开始
+        function startShow() {
+            if (started) return;
+            started = true;
+            
+            soundSystem.init();
+            
+            setTimeout(() => {
+                launchRandomFirework();
+                autoFireworkInterval = setInterval(() => {
+                    const count = 1 + Math.floor(Math.random() * 2);
+                    for (let i = 0; i < count; i++) {
+                        setTimeout(() => launchRandomFirework(), i * 150);
+                    }
+                }, 700);
+            }, 300);
+        }
+        
+        // 页面加载后自动开始
+        setTimeout(startShow, 500);
+        
+        // 音效开关
+        document.getElementById('soundToggle').addEventListener('click', () => {
+            // 首次点击时初始化音效
+            if (!soundSystem.initialized) {
+                soundSystem.init();
+            }
+            const enabled = soundSystem.toggle();
+            const btn = document.getElementById('soundToggle');
+            btn.textContent = enabled ? '🔊' : '🔇';
+            btn.classList.toggle('muted', !enabled);
+        });
+        
+        // 绘制星星
+        function drawStars() {
+            stars.forEach(star => {
+                star.alpha += star.twinkleSpeed * (Math.random() > 0.5 ? 1 : -1);
+                star.alpha = Math.max(0.2, Math.min(1, star.alpha));
+                
+                ctx.globalAlpha = star.alpha * 0.8;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+        
+        // 动画循环
+        function animate() {
+            updateSize();
+            
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.12)';
+            ctx.fillRect(0, 0, width, height);
+            
+            drawStars();
+            
+            fireworks = fireworks.filter(f => !f.isDone());
+            fireworks.forEach(f => {
+                f.update();
+                f.draw();
+            });
+            
+            numberFireworks.forEach(nf => {
+                nf.update();
+                nf.draw();
+            });
+            
+            if (numberFireworks.length > 0 && numberFireworks.every(nf => nf.isDone())) {
+                numberFireworks = [];
+                // 不再循环，保持最终状态
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>
