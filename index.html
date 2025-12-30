@@ -34,10 +34,56 @@
             touch-action: none;
         }
         
+        /* 2026大字 */
+        .year-display {
+            position: fixed;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            pointer-events: none;
+            display: flex;
+            gap: clamp(10px, 3vw, 30px);
+        }
+        
+        .year-display.show {
+            opacity: 1;
+        }
+        
+        .year-char {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(60px, 18vw, 150px);
+            font-weight: bold;
+            text-shadow: 
+                0 0 20px currentColor,
+                0 0 40px currentColor,
+                0 0 60px currentColor,
+                0 0 80px currentColor;
+            animation: yearGlow 2s ease-in-out infinite alternate;
+        }
+        
+        .year-char:nth-child(1) { animation-delay: 0s; }
+        .year-char:nth-child(2) { animation-delay: 0.2s; }
+        .year-char:nth-child(3) { animation-delay: 0.4s; }
+        .year-char:nth-child(4) { animation-delay: 0.6s; }
+        
+        @keyframes yearGlow {
+            from { 
+                text-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor;
+                transform: scale(1);
+            }
+            to { 
+                text-shadow: 0 0 30px currentColor, 0 0 60px currentColor, 0 0 90px currentColor, 0 0 120px currentColor;
+                transform: scale(1.02);
+            }
+        }
+        
         /* 祝福语区域 */
         .blessings {
             position: fixed;
-            bottom: 8%;
+            bottom: 12%;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
@@ -261,6 +307,14 @@
         </div>
     </div>
     
+    <!-- 2026大字 -->
+    <div class="year-display" id="yearDisplay">
+        <span class="year-char" style="color: #ff69b4;">2</span>
+        <span class="year-char" style="color: #ffd700;">0</span>
+        <span class="year-char" style="color: #00bfff;">2</span>
+        <span class="year-char" style="color: #da70d6;">6</span>
+    </div>
+    
     <!-- 祝福语 -->
     <div class="blessings" id="blessings">
         <div class="main-greeting">愿你过尽千帆</div>
@@ -468,14 +522,6 @@
         updateSize();
         
         // ========== 颜色配置 ==========
-        // 2026纯色配置 - 更清晰
-        const numberColors = [
-            ['#ff69b4'], // 2 - 粉色
-            ['#ffd700'], // 0 - 金色
-            ['#00bfff'], // 2 - 蓝色
-            ['#da70d6']  // 6 - 紫色
-        ];
-        
         const fireworkColors = [
             ['#ff0044', '#ff3366', '#ff6688', '#ff99aa', '#ffccdd'],
             ['#ff6600', '#ff9933', '#ffbb66', '#ffdd99', '#ffeecc'],
@@ -652,205 +698,8 @@
             }
         }
         
-        // ========== 数字烟花类 ==========
-        class NumberFirework {
-            constructor(char, centerX, centerY, colorSet, delay = 0) {
-                this.char = char;
-                this.centerX = centerX;
-                this.centerY = centerY;
-                this.colorSet = colorSet;
-                this.particles = [];
-                this.sparkles = [];
-                this.delay = delay;
-                this.phase = 'waiting';
-                this.explosionTime = 0;
-                this.formingProgress = 0;
-                this.fadeProgress = 0;
-                this.targetPositions = [];
-                this.soundPlayed = false;
-                this.getTargetPositions();
-            }
-            
-            getTargetPositions() {
-                const tempCanvas = document.createElement('canvas');
-                const tempCtx = tempCanvas.getContext('2d');
-                const fontSize = Math.min(width * 0.18, 180);
-                tempCanvas.width = fontSize * 1.2;
-                tempCanvas.height = fontSize * 1.4;
-                
-                tempCtx.font = `bold ${fontSize}px Arial`;
-                tempCtx.fillStyle = 'white';
-                tempCtx.textAlign = 'center';
-                tempCtx.textBaseline = 'middle';
-                tempCtx.fillText(this.char, tempCanvas.width / 2, tempCanvas.height / 2);
-                
-                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-                const data = imageData.data;
-                const step = Math.max(5, Math.floor(fontSize / 25));
-                
-                for (let y = 0; y < tempCanvas.height; y += step) {
-                    for (let x = 0; x < tempCanvas.width; x += step) {
-                        const index = (y * tempCanvas.width + x) * 4;
-                        if (data[index + 3] > 128) {
-                            this.targetPositions.push({
-                                x: this.centerX + (x - tempCanvas.width / 2),
-                                y: this.centerY + (y - tempCanvas.height / 2)
-                            });
-                        }
-                    }
-                }
-            }
-            
-            start() {
-                if (this.phase !== 'waiting') return;
-                this.phase = 'exploding';
-                
-                if (!this.soundPlayed) {
-                    soundSystem.playNumberExplosion();
-                    this.soundPlayed = true;
-                }
-                
-                this.targetPositions.forEach((target, i) => {
-                    const angle = Math.random() * Math.PI * 2;
-                    const dist = 200 + Math.random() * 300;
-                    const startX = this.centerX + Math.cos(angle) * dist;
-                    const startY = this.centerY + Math.sin(angle) * dist;
-                    
-                    this.particles.push({
-                        x: startX, y: startY,
-                        targetX: target.x, targetY: target.y,
-                        color: this.colorSet[Math.floor(Math.random() * this.colorSet.length)],
-                        size: 3.5 + Math.random() * 2,
-                        alpha: 1,
-                        delay: Math.random() * 20,
-                        trail: []
-                    });
-                });
-                
-                for (let i = 0; i < 30; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const speed = 3 + Math.random() * 8;
-                    this.sparkles.push({
-                        x: this.centerX, y: this.centerY,
-                        vx: Math.cos(angle) * speed,
-                        vy: Math.sin(angle) * speed,
-                        color: this.colorSet[Math.floor(Math.random() * this.colorSet.length)],
-                        alpha: 1,
-                        size: 2 + Math.random() * 3
-                    });
-                }
-            }
-            
-            update() {
-                if (this.phase === 'waiting') {
-                    this.delay--;
-                    if (this.delay <= 0) this.start();
-                    return;
-                }
-                
-                this.sparkles = this.sparkles.filter(s => s.alpha > 0.01);
-                this.sparkles.forEach(s => {
-                    s.x += s.vx;
-                    s.y += s.vy;
-                    s.vx *= 0.96;
-                    s.vy *= 0.96;
-                    s.vy += 0.05;
-                    s.alpha -= 0.015;
-                    s.size *= 0.98;
-                });
-                
-                if (this.phase === 'exploding') {
-                    this.explosionTime++;
-                    if (this.explosionTime > 30) this.phase = 'forming';
-                }
-                
-                if (this.phase === 'forming') {
-                    this.formingProgress += 0.015;
-                    
-                    this.particles.forEach(p => {
-                        if (p.delay > 0) { p.delay--; return; }
-                        p.trail.push({ x: p.x, y: p.y });
-                        if (p.trail.length > 6) p.trail.shift();
-                        p.x += (p.targetX - p.x) * 0.08;
-                        p.y += (p.targetY - p.y) * 0.08;
-                    });
-                    
-                    const settled = this.particles.every(p => {
-                        const dx = p.x - p.targetX;
-                        const dy = p.y - p.targetY;
-                        return Math.sqrt(dx * dx + dy * dy) < 5;
-                    });
-                    
-                    if (settled || this.formingProgress > 1.5) {
-                        this.phase = 'formed';
-                        this.formHoldTime = 0;
-                    }
-                }
-                
-                if (this.phase === 'formed') {
-                    this.formHoldTime++;
-                    if (this.formHoldTime > 360) this.phase = 'fading';
-                }
-                
-                if (this.phase === 'fading') {
-                    this.fadeProgress += 0.005;
-                    this.particles.forEach(p => {
-                        p.alpha = Math.max(0, 1 - this.fadeProgress);
-                        p.x += (Math.random() - 0.5) * 0.3;
-                        p.y += (Math.random() - 0.5) * 0.2 - 0.15;
-                        p.size *= 0.999;
-                    });
-                    if (this.fadeProgress >= 1) this.phase = 'done';
-                }
-            }
-            
-            draw() {
-                this.sparkles.forEach(s => {
-                    ctx.globalAlpha = s.alpha;
-                    ctx.beginPath();
-                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fill();
-                });
-                
-                this.particles.forEach(p => {
-                    if (p.delay > 0) return;
-                    
-                    // 简化拖尾
-                    if (p.trail.length > 0) {
-                        const lastPoint = p.trail[p.trail.length - 1];
-                        ctx.globalAlpha = p.alpha * 0.3;
-                        ctx.beginPath();
-                        ctx.arc(lastPoint.x, lastPoint.y, p.size * 0.5, 0, Math.PI * 2);
-                        ctx.fillStyle = p.color;
-                        ctx.fill();
-                    }
-                    
-                    ctx.globalAlpha = p.alpha;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                    
-                    // 增强光晕
-                    ctx.globalAlpha = p.alpha * 0.5;
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                });
-                
-                ctx.globalAlpha = 1;
-            }
-            
-            isDone() {
-                return this.phase === 'done';
-            }
-        }
-        
         // ========== 主逻辑 ==========
         let fireworks = [];
-        let numberFireworks = [];
         let stars = [];
         let showYearTriggered = false;
         let fireworkCount = 0;
@@ -890,22 +739,15 @@
         
         function launchNumberFireworks() {
             updateSize();
-            const spacing = Math.min(width * 0.22, 200);
-            const startX = width / 2 - spacing * 1.5;
-            const centerY = height * 0.38;
+            // 播放音效
+            soundSystem.playNumberExplosion();
             
-            const chars = ['2', '0', '2', '6'];
-            chars.forEach((char, i) => {
-                numberFireworks.push(new NumberFirework(
-                    char, startX + i * spacing, centerY,
-                    numberColors[i], i * 25
-                ));
-            });
-            
+            // 显示2026文字和祝福语
             setTimeout(() => {
+                document.getElementById('yearDisplay').classList.add('show');
                 document.getElementById('blessings').classList.add('show');
                 document.getElementById('lanterns').classList.add('show');
-            }, 2500);
+            }, 500);
         }
         
         // 触摸/点击事件
@@ -1010,16 +852,6 @@
                 f.update();
                 f.draw();
             });
-            
-            numberFireworks.forEach(nf => {
-                nf.update();
-                nf.draw();
-            });
-            
-            if (numberFireworks.length > 0 && numberFireworks.every(nf => nf.isDone())) {
-                numberFireworks = [];
-                // 不再循环，保持最终状态
-            }
             
             requestAnimationFrame(animate);
         }
