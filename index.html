@@ -132,7 +132,7 @@
         /* 音效按钮 */
         .sound-toggle {
             position: fixed;
-            top: 20px;
+            top: 80px;
             right: 20px;
             width: 44px;
             height: 44px;
@@ -498,7 +498,7 @@
                 this.decay = decay;
                 this.gravity = gravity;
                 this.trail = [];
-                this.trailLength = 8;
+                this.trailLength = 5;
             }
             
             update() {
@@ -515,14 +515,16 @@
             }
             
             draw() {
-                this.trail.forEach((point, index) => {
-                    const ratio = (index + 1) / this.trail.length;
+                // 简化拖尾绘制
+                for (let i = 0; i < this.trail.length; i += 2) {
+                    const point = this.trail[i];
+                    const ratio = (i + 1) / this.trail.length;
                     ctx.beginPath();
-                    ctx.arc(point.x, point.y, point.size * ratio * 0.6, 0, Math.PI * 2);
+                    ctx.arc(point.x, point.y, point.size * ratio * 0.5, 0, Math.PI * 2);
                     ctx.fillStyle = this.color;
                     ctx.globalAlpha = point.alpha * ratio * 0.4;
                     ctx.fill();
-                });
+                }
                 
                 ctx.globalAlpha = this.alpha;
                 ctx.beginPath();
@@ -530,14 +532,11 @@
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 
-                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 4);
-                gradient.addColorStop(0, this.color);
-                gradient.addColorStop(0.4, this.color + '88');
-                gradient.addColorStop(1, 'transparent');
-                ctx.fillStyle = gradient;
-                ctx.globalAlpha = this.alpha * 0.6;
+                // 简化光晕
+                ctx.globalAlpha = this.alpha * 0.4;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size * 4, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
                 ctx.fill();
                 
                 ctx.globalAlpha = 1;
@@ -553,7 +552,7 @@
                 this.colorSet = colorSet;
                 this.velocity = { x: (Math.random() - 0.5) * 2, y: -14 - Math.random() * 6 };
                 this.trail = [];
-                this.trailLength = 20;
+                this.trailLength = 12;
                 this.exploded = false;
                 this.particles = [];
                 this.isLarge = isLarge;
@@ -587,9 +586,9 @@
                 this.exploded = true;
                 soundSystem.playExplosion(this.isLarge);
                 
-                const baseCount = this.isLarge ? 200 : 120;
-                const particleCount = baseCount + Math.random() * 80;
-                const layers = this.isLarge ? 4 : 3;
+                const baseCount = this.isLarge ? 80 : 50;
+                const particleCount = baseCount + Math.random() * 30;
+                const layers = this.isLarge ? 3 : 2;
                 
                 for (let layer = 0; layer < layers; layer++) {
                     const layerParticles = particleCount / layers;
@@ -609,7 +608,7 @@
                     }
                 }
                 
-                for (let i = 0; i < 40; i++) {
+                for (let i = 0; i < 15; i++) {
                     const angle = Math.random() * Math.PI * 2;
                     const speed = 2 + Math.random() * 4;
                     this.particles.push(new Particle(
@@ -622,23 +621,25 @@
             
             draw() {
                 if (!this.exploded) {
-                    for (let i = 0; i < this.trail.length; i++) {
+                    // 简化上升轨迹
+                    for (let i = 0; i < this.trail.length; i += 2) {
                         const point = this.trail[i];
                         const ratio = i / this.trail.length;
                         ctx.beginPath();
-                        ctx.arc(point.x, point.y, 2 + ratio * 2, 0, Math.PI * 2);
-                        ctx.fillStyle = `rgba(255, ${180 + ratio * 75}, ${100 + ratio * 100}, ${ratio * 0.8})`;
+                        ctx.arc(point.x, point.y, 1.5 + ratio * 1.5, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, ${180 + ratio * 75}, ${100 + ratio * 100}, ${ratio * 0.7})`;
                         ctx.fill();
                     }
                     
-                    const headGradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, 20);
-                    headGradient.addColorStop(0, '#ffffff');
-                    headGradient.addColorStop(0.3, '#ffffaa');
-                    headGradient.addColorStop(0.6, '#ffaa00');
-                    headGradient.addColorStop(1, 'transparent');
-                    ctx.fillStyle = headGradient;
+                    // 简化火箭头
                     ctx.beginPath();
-                    ctx.arc(this.x, this.y, 20, 0, Math.PI * 2);
+                    ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffaa';
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ffffff';
                     ctx.fill();
                 }
                 
@@ -684,7 +685,7 @@
                 
                 const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
                 const data = imageData.data;
-                const step = Math.max(3, Math.floor(fontSize / 40));
+                const step = Math.max(5, Math.floor(fontSize / 25));
                 
                 for (let y = 0; y < tempCanvas.height; y += step) {
                     for (let x = 0; x < tempCanvas.width; x += step) {
@@ -725,7 +726,7 @@
                     });
                 });
                 
-                for (let i = 0; i < 60; i++) {
+                for (let i = 0; i < 30; i++) {
                     const angle = Math.random() * Math.PI * 2;
                     const speed = 3 + Math.random() * 8;
                     this.sparkles.push({
@@ -805,15 +806,6 @@
             draw() {
                 this.sparkles.forEach(s => {
                     ctx.globalAlpha = s.alpha;
-                    const gradient = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size * 4);
-                    gradient.addColorStop(0, s.color);
-                    gradient.addColorStop(0.5, s.color + '66');
-                    gradient.addColorStop(1, 'transparent');
-                    ctx.fillStyle = gradient;
-                    ctx.beginPath();
-                    ctx.arc(s.x, s.y, s.size * 4, 0, Math.PI * 2);
-                    ctx.fill();
-                    
                     ctx.beginPath();
                     ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
                     ctx.fillStyle = '#ffffff';
@@ -823,14 +815,15 @@
                 this.particles.forEach(p => {
                     if (p.delay > 0) return;
                     
-                    p.trail.forEach((point, i) => {
-                        const ratio = i / p.trail.length;
-                        ctx.globalAlpha = p.alpha * ratio * 0.3;
+                    // 简化拖尾
+                    if (p.trail.length > 0) {
+                        const lastPoint = p.trail[p.trail.length - 1];
+                        ctx.globalAlpha = p.alpha * 0.3;
                         ctx.beginPath();
-                        ctx.arc(point.x, point.y, p.size * ratio * 0.5, 0, Math.PI * 2);
+                        ctx.arc(lastPoint.x, lastPoint.y, p.size * 0.5, 0, Math.PI * 2);
                         ctx.fillStyle = p.color;
                         ctx.fill();
-                    });
+                    }
                     
                     ctx.globalAlpha = p.alpha;
                     ctx.beginPath();
@@ -838,14 +831,11 @@
                     ctx.fillStyle = p.color;
                     ctx.fill();
                     
-                    const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-                    gradient.addColorStop(0, p.color);
-                    gradient.addColorStop(0.5, p.color + '44');
-                    gradient.addColorStop(1, 'transparent');
-                    ctx.fillStyle = gradient;
-                    ctx.globalAlpha = p.alpha * 0.5;
+                    // 简化光晕
+                    ctx.globalAlpha = p.alpha * 0.3;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
                     ctx.fill();
                 });
                 
@@ -869,7 +859,7 @@
         // 创建星星
         function createStars() {
             stars = [];
-            for (let i = 0; i < 150; i++) {
+            for (let i = 0; i < 80; i++) {
                 stars.push({
                     x: Math.random() * width,
                     y: Math.random() * height * 0.7,
@@ -961,11 +951,17 @@
             setTimeout(() => {
                 launchRandomFirework();
                 autoFireworkInterval = setInterval(() => {
-                    const count = 1 + Math.floor(Math.random() * 2);
-                    for (let i = 0; i < count; i++) {
-                        setTimeout(() => launchRandomFirework(), i * 150);
+                    // 2026显示后大幅减少烟花
+                    if (showYearTriggered) {
+                        if (Math.random() > 0.3) return;
+                        launchRandomFirework();
+                    } else {
+                        const count = 1 + Math.floor(Math.random() * 2);
+                        for (let i = 0; i < count; i++) {
+                            setTimeout(() => launchRandomFirework(), i * 150);
+                        }
                     }
-                }, 700);
+                }, 800);
             }, 300);
         }
         
@@ -1003,7 +999,7 @@
         function animate() {
             updateSize();
             
-            ctx.fillStyle = 'rgba(10, 10, 26, 0.12)';
+            ctx.fillStyle = 'rgba(10, 10, 26, 0.18)';
             ctx.fillRect(0, 0, width, height);
             
             drawStars();
