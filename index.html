@@ -468,11 +468,12 @@
         updateSize();
         
         // ========== 颜色配置 ==========
+        // 2026纯色配置 - 更清晰
         const numberColors = [
-            ['#ff69b4', '#ff1493', '#ffb6c1', '#ff85c1', '#ffc0cb'],
-            ['#ffd700', '#ffec8b', '#fff8dc', '#ffa500', '#ffcc00'],
-            ['#00bfff', '#87ceeb', '#4169e1', '#6495ed', '#00ffff'],
-            ['#9932cc', '#da70d6', '#ee82ee', '#ba55d3', '#8b008b']
+            ['#ff69b4'], // 2 - 粉色
+            ['#ffd700'], // 0 - 金色
+            ['#00bfff'], // 2 - 蓝色
+            ['#da70d6']  // 6 - 紫色
         ];
         
         const fireworkColors = [
@@ -719,7 +720,7 @@
                         x: startX, y: startY,
                         targetX: target.x, targetY: target.y,
                         color: this.colorSet[Math.floor(Math.random() * this.colorSet.length)],
-                        size: 2.5 + Math.random() * 2,
+                        size: 3.5 + Math.random() * 2,
                         alpha: 1,
                         delay: Math.random() * 20,
                         trail: []
@@ -831,10 +832,10 @@
                     ctx.fillStyle = p.color;
                     ctx.fill();
                     
-                    // 简化光晕
-                    ctx.globalAlpha = p.alpha * 0.3;
+                    // 增强光晕
+                    ctx.globalAlpha = p.alpha * 0.5;
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
                     ctx.fillStyle = p.color;
                     ctx.fill();
                 });
